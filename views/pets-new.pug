@@ -19,7 +19,8 @@ block content
             span.required *
             input.form-control(name="species" required)
         .form-group
-            label Avatar*
+            label Avatar
+            span.required *
             input.form-control(name="avatar" type="file" required)  
         .form-group
             label Favorite Food
@@ -29,4 +30,8 @@ block content
             label Description
             span.required *
             textarea.form-control(name="description" required minlength="140")
+        .form-group
+            label Price
+            span.required *
+            textarea.form-control(name="price" required type="number")
         button(type="submit").btn.btn-primary Save
