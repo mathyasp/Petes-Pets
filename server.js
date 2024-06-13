@@ -9,7 +9,18 @@ const favicon = require('serve-favicon');
 const logger = require('morgan'); // logs http requests
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const methodOverride = require('method-override')
+const methodOverride = require('method-override');
+// require our mailgun dependencies
+const nodemailer = require('nodemailer');
+const mg = require('nodemailer-mailgun-transport');
+
+// auth with our mailgun API key and domain
+const auth = {
+  auth: {
+    api_key: process.env.MAILGUN_API_KEY,
+    domain: process.env.EMAIL_DOMAIN
+  }
+}
 
 const app = express();
 
@@ -19,6 +30,31 @@ mongoose.connect('mongodb://localhost/local', {
   useUnifiedTopology: true,
   useCreateIndex: true,
   useFindAndModify: false
+});
+
+// create a mailer
+const nodemailerMailgun = nodemailer.createTransport(mg(auth));
+
+// SEND EMAIL
+const user = {
+  email: 'mathyas.papp@students.dominican.edu',
+  name: 'Mathyas',
+  age: '29'
+};
+
+nodemailerMailgun.sendMail({
+  from: 'no-reply@example.com',
+  to: user.email, // An array if you have multiple recipients.
+  subject: 'Hey you, awesome!',
+  template: {
+    name: 'email.handlebars',
+    engine: 'handlebars',
+    context: user
+  }
+}).then(info => {
+  console.log('Response: ' + info);
+}).catch(err => {
+  console.log('Error: ' + err);
 });
 
 // view engine setup
@@ -36,6 +72,8 @@ app.use(logger('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+app.locals.PUBLIC_STRIPE_API_KEY = process.env.PUBLIC_STRIPE_API_KEY;
 
 require('./routes/index.js')(app);
 require('./routes/pets.js')(app);
@@ -57,7 +95,5 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.render('error');
 });
-
-app.locals.PUBLIC_STRIPE_API_KEY = process.env.PUBLIC_STRIPE_API_KEY;
 
 module.exports = app;
